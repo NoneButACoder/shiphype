@@ -1,0 +1,17 @@
+[
+  {
+    "id": "proj_483zjof",
+    "name": "ShoppinggWebSite",
+    "slug": "shoppinggwebsite",
+    "repo": "NoneButACoder/ShoppinggWebSite",
+    "createdAt": "2026-11-02T09:16:56.189Z",
+    "tagline": "The lightning-fast e-commerce shopping experience",
+    "description": "A modern high-performance shopping cart and promotional coupon discount system built for web creators.",
+    "logoUrl": "💎",
+    "accentColor": "purple",
+    "websiteUrl": "https://shoppinggwebsite.com",
+    "twitterHandle": "nonebutacoder",
+    "customDomain": "changelog.shoppinggwebsite.com",
+    "bannerPattern": "dots"
+  }
+]

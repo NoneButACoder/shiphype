@@ -1,0 +1,43 @@
+[
+  {
+    "id": "bcast_z79zeid",
+    "releaseId": "rel_16lm30t",
+    "projectSlug": "shoppinggwebsite",
+    "subject": "[ShoppinggWebSite v1.2.0] v1.2.0 Released",
+    "recipientCount": 1,
+    "recipients": [
+      "yjl022035@gmail.com"
+    ],
+    "simulated": true,
+    "status": "success",
+    "timestamp": "2026-11-04T11:46:14.325Z"
+  },
+  {
+    "id": "bcast_1z5s1hl",
+    "releaseId": "rel_vapyq2p",
+    "projectSlug": "shoppinggwebsite",
+    "subject": "[ShoppinggWebSite v1.2.0] ShoppinggWebSite Update",
+    "recipientCount": 2,
+    "recipients": [
+      "yjl022035@gmail.com",
+      "alex.dev@example.com"
+    ],
+    "simulated": true,
+    "status": "success",
+    "timestamp": "2026-11-04T11:45:57.595Z"
+  },
+  {
+    "id": "bcast_jalt3s2",
+    "releaseId": "rel_vapyq2p",
+    "projectSlug": "shoppinggwebsite",
+    "subject": "[ShoppinggWebSite v1.2.0] ShoppinggWebSite Update",
+    "recipientCount": 2,
+    "recipients": [
+      "yjl022035@gmail.com",
+      "alex.dev@example.com"
+    ],
+    "simulated": true,
+    "status": "success",
+    "timestamp": "2026-11-04T11:35:39.421Z"
+  }
+]

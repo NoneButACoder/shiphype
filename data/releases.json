@@ -1,0 +1,202 @@
+[
+  {
+    "id": "rel_vapyq2p",
+    "projectSlug": "shoppinggwebsite",
+    "versionTag": "v1.2.0",
+    "title": "ShoppinggWebSite Update",
+    "status": "published",
+    "changelog": {
+      "features": [
+        "Added instant checkout coupons and promo code verification"
+      ],
+      "improvements": [
+        "Improved responsive drawer animation performance"
+      ],
+      "fixes": [
+        "Fixed pricing rounding bugs on discounted items"
+      ]
+    },
+    "cardData": {
+      "badge": "v1.2.0",
+      "title": "ShoppinggWebSite Update",
+      "subtitle": "Promo codes, faster animations, and pricing fixes.",
+      "highlights": [
+        "Instant checkout promo codes",
+        "Faster drawer animations",
+        "Fixed discount rounding bugs"
+      ]
+    },
+    "sourcePr": {
+      "owner": "NoneButACoder",
+      "repo": "ShoppinggWebSite",
+      "pullNumber": 0,
+      "url": "https://github.com/NoneButACoder/ShoppinggWebSite/releases/tag/v1.2.0"
+    },
+    "publishedAt": "2026-11-02T10:28:07.118Z"
+  },
+  {
+    "id": "rel_16lm30t",
+    "projectSlug": "shoppinggwebsite",
+    "versionTag": "v1.2.0",
+    "title": "v1.2.0 Released",
+    "status": "published",
+    "changelog": {
+      "features": [
+        "Added instant checkout coupons and promo code verification"
+      ],
+      "improvements": [
+        "Improved responsive drawer animation performance"
+      ],
+      "fixes": [
+        "Fixed pricing rounding bugs on discounted items"
+      ]
+    },
+    "cardData": {
+      "badge": "v1.2.0",
+      "title": "v1.2.0 Released",
+      "subtitle": "Instant promo codes and performance updates",
+      "highlights": [
+        "Instant checkout promo verification",
+        "Smoother drawer animation performance",
+        "Fixed pricing rounding on discounts"
+      ]
+    },
+    "sourcePr": {
+      "owner": "NoneButACoder",
+      "repo": "ShoppinggWebSite",
+      "pullNumber": 0,
+      "url": "https://github.com/NoneButACoder/ShoppinggWebSite/releases/tag/v1.2.0"
+    },
+    "publishedAt": "2026-11-02T10:12:44.278Z"
+  },
+  {
+    "id": "rel_x2xs5qb",
+    "projectSlug": "shoppinggwebsite",
+    "versionTag": "v1.1.0",
+    "title": "Coupon System Live",
+    "changelog": {
+      "features": [
+        "Added top announcement banner showcasing the SHIPHYPE20 launch discount code.",
+        "Implemented coupon code validation and discount calculation inside the shopping cart drawer.",
+        "Added discount row to the order summary with real-time total recalculations.",
+        "Added coupon removal tag and interactive feedback toasts for applied codes."
+      ],
+      "improvements": [],
+      "fixes": []
+    },
+    "cardData": {
+      "badge": "v1.1.0",
+      "title": "Coupon System Live",
+      "subtitle": "Apply promo codes directly inside the cart",
+      "highlights": [
+        "Cart drawer coupon validation",
+        "Real-time total recalculation",
+        "Top promo announcement banner"
+      ]
+    },
+    "sourcePr": {
+      "owner": "NoneButACoder",
+      "repo": "ShoppinggWebSite",
+      "pullNumber": 1,
+      "url": "https://github.com/NoneButACoder/ShoppinggWebSite/pull/1"
+    },
+    "status": "published",
+    "publishedAt": "2026-11-02T10:00:49.865Z"
+  },
+  {
+    "id": "rel_67kxnvo",
+    "projectSlug": "shoppinggwebsite",
+    "versionTag": "NEW FEATURE",
+    "title": "Coupon System Live",
+    "changelog": {
+      "features": [
+        "Added an announcement banner featuring the SHIPHYPE20 launch discount code.",
+        "Implemented coupon code validation and discount calculations in the shopping cart drawer.",
+        "Added a discount row to the order summary with real-time subtotal and total recalculations.",
+        "Added interactive toast notifications for coupon feedback and a tag to easily remove applied coupons."
+      ],
+      "improvements": [],
+      "fixes": []
+    },
+    "cardData": {
+      "badge": "NEW FEATURE",
+      "title": "Coupon System Live",
+      "subtitle": "Apply promo codes directly in your cart drawer",
+      "highlights": [
+        "Promo banner with code SHIPHYPE20",
+        "Real-time checkout discount totals",
+        "One-click coupon removal & toasts"
+      ]
+    },
+    "sourcePr": {
+      "owner": "NoneButACoder",
+      "repo": "ShoppinggWebSite",
+      "pullNumber": 1,
+      "url": "https://github.com/NoneButACoder/ShoppinggWebSite/pull/1"
+    },
+    "publishedAt": "2026-11-02T09:40:15.794Z"
+  },
+  {
+    "id": "rel_ow9k7ht",
+    "projectSlug": "shoppinggwebsite",
+    "versionTag": "NEW FEATURE",
+    "title": "优惠码折扣系统上线",
+    "changelog": {
+      "features": [
+        "新增顶部公告 Banner，展示上线优惠码 SHIPHYPE20",
+        "在购物车抽屉中支持优惠码校验与折扣计算",
+        "订单结算页新增优惠折扣显示行，支持小计与总价实时重新计算",
+        "新增优惠券移除标签及交互式 Toast 操作提示"
+      ],
+      "improvements": [],
+      "fixes": []
+    },
+    "cardData": {
+      "badge": "NEW FEATURE",
+      "title": "优惠码折扣系统上线",
+      "subtitle": "支持输入优惠码 SHIPHYPE20 并在购物车实时计算折扣",
+      "highlights": [
+        "顶部 Banner 展示最新优惠码 SHIPHYPE20",
+        "购物车抽屉支持优惠码实时校验与减免",
+        "订单结算页实时重新计算小计与总价"
+      ]
+    },
+    "sourcePr": {
+      "owner": "NoneButACoder",
+      "repo": "ShoppinggWebSite",
+      "pullNumber": 1,
+      "url": "https://github.com/NoneButACoder/ShoppinggWebSite/pull/1"
+    },
+    "publishedAt": "2026-11-02T09:32:10.267Z"
+  },
+  {
+    "id": "rel_l5etcna",
+    "projectSlug": "shoppinggwebsite",
+    "versionTag": "v1.1.0",
+    "title": "Promotional Coupon Discount System",
+    "changelog": {
+      "fixes": [
+        "Fixed coupon case-sensitivity issue"
+      ],
+      "features": [
+        "Add SHIPHYPE20 20% discount coupon",
+        "Real-time cart discount recalculation"
+      ],
+      "improvements": [
+        "Clearer checkout modal summary"
+      ]
+    },
+    "cardData": {
+      "title": "Coupons & Discounts Live",
+      "highlights": [
+        "Instant checkout discounts",
+        "Smart cart recalculation",
+        "Responsive drawer UI"
+      ],
+      "badge": "NEW FEATURE",
+      "subtitle": "Save 20% on all orders with checkout coupons"
+    },
+    "sourcePr": "https://github.com/NoneButACoder/ShoppinggWebSite/pull/1",
+    "publishedAt": "2026-11-02T09:16:56.191Z"
+  }
+]
