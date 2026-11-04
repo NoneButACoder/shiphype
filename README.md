@@ -7,6 +7,7 @@
 [![Turbopack](https://img.shields.io/badge/Turbopack-Ready-blue)](https://turbo.build/)
 [![Google Gemini API](https://img.shields.io/badge/Google%20Gemini-Cascade%20Engine-4285F4?logo=google)](https://ai.google.dev/)
 [![Tailwind CSS 4](https://img.shields.io/badge/TailwindCSS-v4-38B2AC?logo=tailwindcss)](https://tailwindcss.com/)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FNoneButACoder%2Fshiphype&env=GEMINI_API_KEY,NEXT_PUBLIC_APP_URL&envDescription=Configure%20your%20Gemini%20API%20key%20and%20production%20URL)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 ---
