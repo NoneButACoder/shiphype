@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getProjectBySlug, updateProject, BrandAccentColor, BannerPattern } from "@/lib/storage";
+import { getSessionUser } from "@/lib/auth";
 
 export async function GET(
   request: NextRequest,
@@ -25,6 +26,11 @@ export async function PUT(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const user = await getSessionUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized. Please log in with GitHub." }, { status: 401 });
+    }
+
     const { slug } = await params;
     const body = await request.json();
 
@@ -66,9 +72,9 @@ export async function PUT(
       updates.bannerPattern = body.bannerPattern;
     }
 
-    const updated = updateProject(slug, updates);
+    const updated = updateProject(slug, updates, user.login);
     if (!updated) {
-      return NextResponse.json({ error: "Project not found" }, { status: 404 });
+      return NextResponse.json({ error: "Project not found or not owned by you." }, { status: 403 });
     }
 
     return NextResponse.json({ success: true, project: updated });

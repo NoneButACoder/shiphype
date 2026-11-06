@@ -28,6 +28,10 @@ import {
   Radio,
   Mail,
   Palette,
+  ShieldCheck,
+  Lock,
+  ArrowRight,
+  Globe,
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -47,6 +51,7 @@ export default function DashboardPage() {
 
   // User session state
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [authChecking, setAuthChecking] = useState<boolean>(true);
   const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
 
   // Project Branding Modal State
@@ -61,15 +66,23 @@ export default function DashboardPage() {
       .then((data) => {
         if (data.authenticated && data.user) {
           setUser(data.user);
+        } else {
+          setUser(null);
         }
       })
-      .catch((err) => console.error("Session check failed", err));
+      .catch((err) => console.error("Session check failed", err))
+      .finally(() => {
+        setAuthChecking(false);
+      });
   }, []);
 
   const handleLogout = async () => {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
       setUser(null);
+      setProjects([]);
+      setReleases([]);
+      setSubscribersCount(0);
     } catch (e) {
       console.error("Logout failed", e);
     }
@@ -127,8 +140,15 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
-    fetchReleases();
-  }, []);
+    if (user) {
+      fetchReleases();
+    } else {
+      setProjects([]);
+      setReleases([]);
+      setSubscribersCount(0);
+      setLoading(false);
+    }
+  }, [user]);
 
   const handleToggleStatus = async (release: ReleaseRecord) => {
     const nextStatus = release.status === "draft" ? "published" : "draft";
@@ -245,10 +265,18 @@ export default function DashboardPage() {
         {/* Top Header & Breadcrumb */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
-              <Layers className="h-7 w-7 text-indigo-600 dark:text-indigo-400" />
-              <span>{isZh ? "项目控制台 & 发版中心" : "Project Dashboard & Releases"}</span>
-            </h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+                <Layers className="h-7 w-7 text-indigo-600 dark:text-indigo-400" />
+                <span>{isZh ? "项目控制台 & 发版中心" : "Project Dashboard & Releases"}</span>
+              </h1>
+              {user && (
+                <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-400 text-xs font-semibold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  @{user.login}
+                </span>
+              )}
+            </div>
             <p className="text-sm text-slate-500 dark:text-zinc-400 mt-1">
               {isZh
                 ? "管理您的所有独立项目、历史发版时间轴、草稿箱与公共更新页"
@@ -257,25 +285,133 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            <button
-              onClick={fetchReleases}
-              disabled={loading}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-slate-700 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white text-xs font-medium transition-all shadow-xs"
-            >
-              <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
-              <span>{isZh ? "刷新" : "Refresh"}</span>
-            </button>
-            <Link
-              href="/"
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium shadow-sm transition-all"
-            >
-              <Plus className="h-4 w-4" />
-              <span>{isZh ? "生成新版本" : "Generate New Release"}</span>
-            </Link>
+            {user ? (
+              <>
+                <button
+                  onClick={fetchReleases}
+                  disabled={loading}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-slate-700 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white text-xs font-medium transition-all shadow-xs cursor-pointer"
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
+                  <span>{isZh ? "刷新" : "Refresh"}</span>
+                </button>
+                <Link
+                  href="/"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium shadow-sm transition-all"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>{isZh ? "生成新版本" : "Generate New Release"}</span>
+                </Link>
+              </>
+            ) : (
+              <button
+                onClick={() => setShowAuthModal(true)}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-slate-900 text-xs font-semibold shadow-sm transition-all cursor-pointer"
+              >
+                <GitPullRequest className="h-3.5 w-3.5" />
+                <span>{isZh ? "连接 GitHub 账号" : "Connect GitHub"}</span>
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Metric Cards */}
+        {authChecking ? (
+          <div className="py-24 flex flex-col items-center justify-center text-center">
+            <RefreshCw className="h-8 w-8 text-indigo-600 dark:text-indigo-400 animate-spin mb-4" />
+            <p className="text-sm text-slate-500 dark:text-zinc-400 font-medium">
+              {isZh ? "正在加载开发者专属工作台..." : "Loading developer workspace..."}
+            </p>
+          </div>
+        ) : !user ? (
+          <div className="py-6 max-w-3xl mx-auto">
+            <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-8 sm:p-12 shadow-xl relative overflow-hidden text-center">
+              <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-96 bg-indigo-500/10 dark:bg-indigo-500/15 rounded-full blur-3xl pointer-events-none" />
+
+              <div className="relative z-10 flex flex-col items-center">
+                <div className="w-16 h-16 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/60 flex items-center justify-center text-indigo-600 dark:text-indigo-400 mb-6 shadow-xs">
+                  <Lock className="h-8 w-8" />
+                </div>
+
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-100/70 dark:bg-indigo-900/40 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 text-xs font-semibold mb-4">
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  <span>{isZh ? "工作台数据隔离保护" : "Multi-Tenant Data Isolation"}</span>
+                </div>
+
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-3">
+                  {isZh ? "连接 GitHub 账号以进入工作台" : "Connect GitHub to Access Your Workspace"}
+                </h2>
+
+                <p className="text-sm sm:text-base text-slate-600 dark:text-zinc-400 max-w-xl mx-auto mb-8 leading-relaxed">
+                  {isZh
+                    ? "ShipHype 控制台受严格的数据隔离保护。未登录访客无法查看或操作任何开发者的专属项目、草稿箱、订阅邮箱及 Webhook 密钥。连接您的 GitHub 即可解锁专属工作台。"
+                    : "ShipHype dashboard is strictly protected by data isolation. Unauthenticated visitors cannot view or modify any developer's private projects, release drafts, subscriber lists, or webhook keys. Connect your GitHub account to continue."}
+                </p>
+
+                <button
+                  onClick={() => setShowAuthModal(true)}
+                  className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-slate-900 font-bold text-sm shadow-lg hover:shadow-xl transition-all cursor-pointer transform hover:-translate-y-0.5"
+                >
+                  <GitPullRequest className="h-5 w-5" />
+                  <span>{isZh ? "一键连接 GitHub 账号" : "Connect with GitHub"}</span>
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+
+                {/* 3 Value Highlights */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-10 w-full text-left">
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-zinc-950/60 border border-slate-200/80 dark:border-zinc-800/80">
+                    <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white mb-1.5">
+                      <Lock className="h-4 w-4 text-indigo-500" />
+                      <span>{isZh ? "专属数据隔离" : "Strict Isolation"}</span>
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-zinc-400 leading-normal">
+                      {isZh
+                        ? "仅您本人可见您创建的项目、草稿箱和邮件订阅者。"
+                        : "Only you can access your private projects, drafts, and subscriber emails."}
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-zinc-950/60 border border-slate-200/80 dark:border-zinc-800/80">
+                    <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white mb-1.5">
+                      <Zap className="h-4 w-4 text-amber-500" />
+                      <span>{isZh ? "自动化 Webhook" : "Automated Webhooks"}</span>
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-zinc-400 leading-normal">
+                      {isZh
+                        ? "GitHub Tag 发版全自动生成 AI 宣发图与 X 推文。"
+                        : "Automated AI changelogs & hype assets when you push tags."}
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-zinc-950/60 border border-slate-200/80 dark:border-zinc-800/80">
+                    <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white mb-1.5">
+                      <Globe className="h-4 w-4 text-emerald-500" />
+                      <span>{isZh ? "公共主页公开可查" : "Public Changelogs"}</span>
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-zinc-400 leading-normal">
+                      {isZh
+                        ? "您公开发布的更新日志主页无需登录，全球可访问。"
+                        : "Your published changelogs (/p/[slug]) remain public to the world."}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Public changelog discovery link */}
+                <div className="mt-8 pt-6 border-t border-slate-100 dark:border-zinc-800/80 text-xs text-slate-500 dark:text-zinc-400 flex flex-col sm:flex-row items-center justify-between gap-3 w-full">
+                  <span>{isZh ? "想先看看公开的更新日志效果？" : "Want to see what a public changelog looks like?"}</span>
+                  <Link
+                    href="/p/shoppinggwebsite"
+                    className="inline-flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400 hover:underline font-medium"
+                  >
+                    <span>{isZh ? "查看 ShoppinggWebSite 公开主页" : "Visit ShoppinggWebSite Changelog"}</span>
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Metric Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-8">
           <div className="p-4 rounded-2xl bg-white dark:bg-zinc-900/60 border border-slate-200 dark:border-zinc-800 shadow-xs">
             <span className="text-xs font-medium text-slate-400 dark:text-zinc-500">
@@ -667,6 +803,8 @@ export default function DashboardPage() {
               );
             })}
           </div>
+        )}
+          </>
         )}
       </main>
 

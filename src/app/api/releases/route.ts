@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getSessionUser } from "@/lib/auth";
 import {
   getAllProjects,
   getAllReleases,
@@ -10,14 +11,27 @@ import {
 
 export async function GET(req: NextRequest) {
   try {
+    const user = await getSessionUser();
+    if (!user) {
+      return NextResponse.json({
+        success: true,
+        authenticated: false,
+        projects: [],
+        releases: [],
+        subscribersCount: 0,
+      });
+    }
+
     const { searchParams } = new URL(req.url);
     const slug = searchParams.get("slug");
-    const projects = getAllProjects();
-    const releases = getAllReleases(slug || undefined, true);
-    const subscribers = getAllSubscribers(slug || undefined);
+    const projects = getAllProjects(user.login);
+    const releases = getAllReleases(slug || undefined, true, user.login);
+    const subscribers = slug ? getAllSubscribers(slug) : [];
 
     return NextResponse.json({
       success: true,
+      authenticated: true,
+      user,
       projects,
       releases,
       subscribersCount: subscribers.length,
@@ -30,6 +44,11 @@ export async function GET(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
+    const user = await getSessionUser();
+    if (!user) {
+      return NextResponse.json({ success: false, error: "Unauthorized. Please log in." }, { status: 401 });
+    }
+
     const body = await req.json();
     const { id, status } = body;
 
@@ -37,9 +56,12 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Invalid parameters" }, { status: 400 });
     }
 
-    const updated = updateReleaseStatus(id, status);
+    const updated = updateReleaseStatus(id, status, user.login);
     if (!updated) {
-      return NextResponse.json({ success: false, error: "Release not found" }, { status: 404 });
+      return NextResponse.json(
+        { success: false, error: "Release not found or not owned by you." },
+        { status: 403 }
+      );
     }
 
     return NextResponse.json({ success: true, id, status });
@@ -51,18 +73,35 @@ export async function PATCH(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
+    const user = await getSessionUser();
+    if (!user) {
+      return NextResponse.json({ success: false, error: "Unauthorized. Please log in." }, { status: 401 });
+    }
+
     const { searchParams } = new URL(req.url);
     const releaseId = searchParams.get("id");
     const projectSlug = searchParams.get("projectSlug");
 
     if (releaseId) {
-      const deleted = deleteRelease(releaseId);
-      return NextResponse.json({ success: deleted });
+      const deleted = deleteRelease(releaseId, user.login);
+      if (!deleted) {
+        return NextResponse.json(
+          { success: false, error: "Release not found or not owned by you." },
+          { status: 403 }
+        );
+      }
+      return NextResponse.json({ success: true });
     }
 
     if (projectSlug) {
-      const deleted = deleteProject(projectSlug);
-      return NextResponse.json({ success: deleted });
+      const deleted = deleteProject(projectSlug, user.login);
+      if (!deleted) {
+        return NextResponse.json(
+          { success: false, error: "Project not found or not owned by you." },
+          { status: 403 }
+        );
+      }
+      return NextResponse.json({ success: true });
     }
 
     return NextResponse.json({ success: false, error: "Missing id or projectSlug" }, { status: 400 });

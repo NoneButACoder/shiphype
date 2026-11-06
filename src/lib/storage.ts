@@ -11,6 +11,7 @@ export interface ProjectRecord {
   slug: string;
   repo: string;
   createdAt: string;
+  ownerLogin?: string; // GitHub username that owns this project
   // Custom Branding
   tagline?: string;
   description?: string;
@@ -28,6 +29,7 @@ export interface ReleaseRecord {
   versionTag: string;
   title: string;
   status?: "draft" | "published";
+  ownerLogin?: string; // GitHub username that owns this release
   changelog: {
     features: string[];
     improvements: string[];
@@ -129,11 +131,20 @@ export function ensureDataFiles() {
   }
 }
 
-export function getAllProjects(): ProjectRecord[] {
+export function getAllProjects(ownerLogin?: string): ProjectRecord[] {
   ensureDataFiles();
   try {
     const raw = fs.readFileSync(PROJECTS_FILE, "utf8");
-    return JSON.parse(raw);
+    const projects: ProjectRecord[] = JSON.parse(raw);
+    if (!ownerLogin) return projects;
+    const cleanOwner = ownerLogin.toLowerCase().trim();
+    return projects.filter((p) => {
+      if (p.ownerLogin && p.ownerLogin.toLowerCase() === cleanOwner) return true;
+      if (p.repo && p.repo.toLowerCase().startsWith(cleanOwner + "/")) return true;
+      // Seed project backward compatibility
+      if (!p.ownerLogin && cleanOwner === "nonebutacoder") return true;
+      return false;
+    });
   } catch {
     return [];
   }
@@ -152,6 +163,9 @@ export function saveProject(project: Omit<ProjectRecord, "id" | "createdAt">): P
   if (existing) {
     existing.name = project.name;
     existing.repo = project.repo;
+    if (project.ownerLogin && !existing.ownerLogin) {
+      existing.ownerLogin = project.ownerLogin;
+    }
     fs.writeFileSync(PROJECTS_FILE, JSON.stringify(projects, null, 2), "utf8");
     return existing;
   }
@@ -161,6 +175,7 @@ export function saveProject(project: Omit<ProjectRecord, "id" | "createdAt">): P
     name: project.name,
     slug: project.slug.toLowerCase(),
     repo: project.repo,
+    ownerLogin: project.ownerLogin,
     createdAt: new Date().toISOString(),
   };
 
@@ -171,12 +186,23 @@ export function saveProject(project: Omit<ProjectRecord, "id" | "createdAt">): P
 
 export function updateProject(
   slug: string,
-  updates: Partial<Omit<ProjectRecord, "id" | "slug" | "createdAt">>
+  updates: Partial<Omit<ProjectRecord, "id" | "slug" | "createdAt">>,
+  ownerLogin?: string
 ): ProjectRecord | null {
   ensureDataFiles();
   const projects = getAllProjects();
   const index = projects.findIndex((p) => p.slug.toLowerCase() === slug.toLowerCase());
   if (index === -1) return null;
+
+  if (ownerLogin) {
+    const cleanOwner = ownerLogin.toLowerCase().trim();
+    const target = projects[index];
+    const isOwner =
+      (target.ownerLogin && target.ownerLogin.toLowerCase() === cleanOwner) ||
+      (target.repo && target.repo.toLowerCase().startsWith(cleanOwner + "/")) ||
+      (!target.ownerLogin && cleanOwner === "nonebutacoder");
+    if (!isOwner) return null;
+  }
 
   projects[index] = {
     ...projects[index],
@@ -187,7 +213,11 @@ export function updateProject(
   return projects[index];
 }
 
-export function getAllReleases(projectSlug?: string, includeDrafts: boolean = false): ReleaseRecord[] {
+export function getAllReleases(
+  projectSlug?: string,
+  includeDrafts: boolean = false,
+  ownerLogin?: string
+): ReleaseRecord[] {
   ensureDataFiles();
   try {
     const raw = fs.readFileSync(RELEASES_FILE, "utf8");
@@ -198,6 +228,19 @@ export function getAllReleases(projectSlug?: string, includeDrafts: boolean = fa
     }
     if (!includeDrafts) {
       filtered = filtered.filter((r) => r.status !== "draft");
+    }
+    if (ownerLogin) {
+      const cleanOwner = ownerLogin.toLowerCase().trim();
+      const userProjects = getAllProjects(ownerLogin);
+      const userProjectSlugs = new Set(userProjects.map((p) => p.slug.toLowerCase()));
+      filtered = filtered.filter((r) => {
+        if (r.ownerLogin && r.ownerLogin.toLowerCase() === cleanOwner) return true;
+        if (r.sourcePr?.owner && r.sourcePr.owner.toLowerCase() === cleanOwner) return true;
+        if (userProjectSlugs.has(r.projectSlug.toLowerCase())) return true;
+        // Seed backward compatibility
+        if (!r.ownerLogin && cleanOwner === "nonebutacoder") return true;
+        return false;
+      });
     }
     return filtered.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
   } catch {
@@ -226,6 +269,7 @@ export function saveRelease(releaseData: Omit<ReleaseRecord, "id" | "publishedAt
     ...releaseData,
     status: releaseData.status || "published",
     projectSlug: releaseData.projectSlug.toLowerCase(),
+    ownerLogin: releaseData.ownerLogin,
     publishedAt: new Date().toISOString(),
   };
 
@@ -234,44 +278,83 @@ export function saveRelease(releaseData: Omit<ReleaseRecord, "id" | "publishedAt
   return newRelease;
 }
 
-export function deleteRelease(releaseId: string): boolean {
-  ensureDataFiles();
-  try {
-    const raw = fs.readFileSync(RELEASES_FILE, "utf8");
-    const releases: ReleaseRecord[] = JSON.parse(raw);
-    const filtered = releases.filter((r) => r.id !== releaseId);
-    if (filtered.length !== releases.length) {
-      fs.writeFileSync(RELEASES_FILE, JSON.stringify(filtered, null, 2), "utf8");
-      return true;
-    }
-    return false;
-  } catch {
-    return false;
-  }
-}
-
-export function updateReleaseStatus(releaseId: string, status: "draft" | "published"): boolean {
+export function deleteRelease(releaseId: string, ownerLogin?: string): boolean {
   ensureDataFiles();
   try {
     const raw = fs.readFileSync(RELEASES_FILE, "utf8");
     const releases: ReleaseRecord[] = JSON.parse(raw);
     const target = releases.find((r) => r.id === releaseId);
-    if (target) {
-      target.status = status;
-      fs.writeFileSync(RELEASES_FILE, JSON.stringify(releases, null, 2), "utf8");
-      return true;
+    if (!target) return false;
+
+    if (ownerLogin) {
+      const cleanOwner = ownerLogin.toLowerCase().trim();
+      const userProjects = getAllProjects(ownerLogin);
+      const userProjectSlugs = new Set(userProjects.map((p) => p.slug.toLowerCase()));
+      const isOwner =
+        (target.ownerLogin && target.ownerLogin.toLowerCase() === cleanOwner) ||
+        (target.sourcePr?.owner && target.sourcePr.owner.toLowerCase() === cleanOwner) ||
+        userProjectSlugs.has(target.projectSlug.toLowerCase()) ||
+        (!target.ownerLogin && cleanOwner === "nonebutacoder");
+      if (!isOwner) return false;
     }
-    return false;
+
+    const filtered = releases.filter((r) => r.id !== releaseId);
+    fs.writeFileSync(RELEASES_FILE, JSON.stringify(filtered, null, 2), "utf8");
+    return true;
   } catch {
     return false;
   }
 }
 
-export function deleteProject(slug: string): boolean {
+export function updateReleaseStatus(
+  releaseId: string,
+  status: "draft" | "published",
+  ownerLogin?: string
+): boolean {
+  ensureDataFiles();
+  try {
+    const raw = fs.readFileSync(RELEASES_FILE, "utf8");
+    const releases: ReleaseRecord[] = JSON.parse(raw);
+    const target = releases.find((r) => r.id === releaseId);
+    if (!target) return false;
+
+    if (ownerLogin) {
+      const cleanOwner = ownerLogin.toLowerCase().trim();
+      const userProjects = getAllProjects(ownerLogin);
+      const userProjectSlugs = new Set(userProjects.map((p) => p.slug.toLowerCase()));
+      const isOwner =
+        (target.ownerLogin && target.ownerLogin.toLowerCase() === cleanOwner) ||
+        (target.sourcePr?.owner && target.sourcePr.owner.toLowerCase() === cleanOwner) ||
+        userProjectSlugs.has(target.projectSlug.toLowerCase()) ||
+        (!target.ownerLogin && cleanOwner === "nonebutacoder");
+      if (!isOwner) return false;
+    }
+
+    target.status = status;
+    fs.writeFileSync(RELEASES_FILE, JSON.stringify(releases, null, 2), "utf8");
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function deleteProject(slug: string, ownerLogin?: string): boolean {
   ensureDataFiles();
   try {
     const rawProjects = fs.readFileSync(PROJECTS_FILE, "utf8");
     const projects: ProjectRecord[] = JSON.parse(rawProjects);
+    const target = projects.find((p) => p.slug.toLowerCase() === slug.toLowerCase());
+    if (!target) return false;
+
+    if (ownerLogin) {
+      const cleanOwner = ownerLogin.toLowerCase().trim();
+      const isOwner =
+        (target.ownerLogin && target.ownerLogin.toLowerCase() === cleanOwner) ||
+        (target.repo && target.repo.toLowerCase().startsWith(cleanOwner + "/")) ||
+        (!target.ownerLogin && cleanOwner === "nonebutacoder");
+      if (!isOwner) return false;
+    }
+
     const filteredProjects = projects.filter((p) => p.slug.toLowerCase() !== slug.toLowerCase());
     fs.writeFileSync(PROJECTS_FILE, JSON.stringify(filteredProjects, null, 2), "utf8");
 
