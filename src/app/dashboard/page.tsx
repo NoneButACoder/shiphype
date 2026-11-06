@@ -48,6 +48,7 @@ export default function DashboardPage() {
   const [copiedUrl, setCopiedUrl] = useState<boolean>(false);
   const [copiedSecret, setCopiedSecret] = useState<boolean>(false);
   const [subscribersCount, setSubscribersCount] = useState<number>(0);
+  const [subscribersByProject, setSubscribersByProject] = useState<Record<string, number>>({});
 
   // User session state
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -83,6 +84,7 @@ export default function DashboardPage() {
       setProjects([]);
       setReleases([]);
       setSubscribersCount(0);
+      setSubscribersByProject({});
     } catch (e) {
       console.error("Logout failed", e);
     }
@@ -131,6 +133,7 @@ export default function DashboardPage() {
         setProjects(data.projects || []);
         setReleases(data.releases || []);
         setSubscribersCount(data.subscribersCount || 0);
+        setSubscribersByProject(data.subscribersByProject || {});
       }
     } catch (e) {
       console.error("Failed to load dashboard data", e);
@@ -146,6 +149,7 @@ export default function DashboardPage() {
       setProjects([]);
       setReleases([]);
       setSubscribersCount(0);
+      setSubscribersByProject({});
       setLoading(false);
     }
   }, [user]);
@@ -246,8 +250,12 @@ export default function DashboardPage() {
       ? releases
       : releases.filter((r) => r.projectSlug.toLowerCase() === selectedSlug.toLowerCase());
 
-  const publishedCount = releases.filter((r) => r.status !== "draft").length;
-  const draftCount = releases.filter((r) => r.status === "draft").length;
+  const publishedCount = filteredReleases.filter((r) => r.status !== "draft").length;
+  const draftCount = filteredReleases.filter((r) => r.status === "draft").length;
+  const activeSubscribersCount =
+    selectedSlug === "all"
+      ? subscribersCount
+      : subscribersByProject[selectedSlug.toLowerCase()] ?? 0;
 
   return (
     <div className={`min-h-screen bg-slate-50 dark:bg-[#070709] text-slate-900 dark:text-zinc-100 flex flex-col font-sans transition-colors ${theme}`}>
@@ -450,7 +458,7 @@ export default function DashboardPage() {
               {isZh ? "邮件订阅" : "Subscribers"}
             </span>
             <div className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
-              {subscribersCount}
+              {activeSubscribersCount}
             </div>
           </div>
         </div>

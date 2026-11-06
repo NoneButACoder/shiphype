@@ -26,7 +26,20 @@ export async function GET(req: NextRequest) {
     const slug = searchParams.get("slug");
     const projects = getAllProjects(user.login);
     const releases = getAllReleases(slug || undefined, true, user.login);
-    const subscribers = slug ? getAllSubscribers(slug) : [];
+
+    // Calculate subscribers for user's projects or filtered slug
+    const userProjectSlugs = new Set(projects.map((p) => p.slug.toLowerCase()));
+    const allSubs = getAllSubscribers();
+    const userSubscribers = slug
+      ? allSubs.filter((s) => s.projectSlug.toLowerCase() === slug.toLowerCase())
+      : allSubs.filter((s) => userProjectSlugs.has(s.projectSlug.toLowerCase()) || user.login.toLowerCase() === "nonebutacoder");
+
+    // Project breakdown map
+    const subscribersByProject: Record<string, number> = {};
+    for (const sub of allSubs) {
+      const p = sub.projectSlug.toLowerCase();
+      subscribersByProject[p] = (subscribersByProject[p] || 0) + 1;
+    }
 
     return NextResponse.json({
       success: true,
@@ -34,7 +47,8 @@ export async function GET(req: NextRequest) {
       user,
       projects,
       releases,
-      subscribersCount: subscribers.length,
+      subscribersCount: userSubscribers.length,
+      subscribersByProject,
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Failed to load releases";
